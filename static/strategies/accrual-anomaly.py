@@ -14,6 +14,9 @@
 #
 # Personal note: Increased coarse_count from 1000 to 1500 to capture more mid-cap stocks and
 # potentially improve diversification in the long/short deciles.
+#
+# Personal note 2: Changed leverage from 5 to 4 to reduce margin risk. The original leverage of 5
+# felt aggressive for a long/short strategy with annual rebalancing.
 
 from AlgorithmImports import *
 
@@ -42,7 +45,8 @@ class AccrualAnomaly(QCAlgorithm):
     def OnSecuritiesChanged(self, changes):
         for security in changes.AddedSecurities:
             security.SetFeeModel(CustomFeeModel())
-            security.SetLeverage(5)
+            # Reduced from 5 to 4 to lower margin risk on annual rebalance
+            security.SetLeverage(4)
 
         for security in changes.RemovedSecurities:
             symbol = security.Symbol
@@ -64,6 +68,4 @@ class AccrualAnomaly(QCAlgorithm):
         fine = [x for x in fine if (float(x.FinancialStatements.BalanceSheet.CurrentAssets.TwelveMonths) != 0) 
                                 and (float(x.FinancialStatements.BalanceSheet.CashAndCashEquivalents.TwelveMonths) != 0)
                                 and (float(x.FinancialStatements.BalanceSheet.CurrentLiabilities.TwelveMonths) != 0)
-                                and (float(x.FinancialStatements.BalanceSheet.CurrentDebt.TwelveMonths) != 0)
-                                and (float(x.FinancialStatements.BalanceSheet.IncomeTaxPayable.TwelveMonths) != 0)
-                                and
+                                
