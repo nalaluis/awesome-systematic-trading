@@ -15,6 +15,8 @@
 # Personal notes:
 #   - Increased coarse_count from 500 to 750 to capture a broader universe and reduce survivorship-like bias
 #     from only picking the most liquid names. May increase turnover slightly.
+#   - Changed leverage from 10 to 5 to reduce risk exposure; the original 10x felt too aggressive for
+#     a personal account where drawdown control matters more than maximizing returns.
 
 from numpy import floor
 from AlgorithmImports import *
@@ -48,7 +50,8 @@ class Weeks52HighEffectinStocks(QCAlgorithm):
     def OnSecuritiesChanged(self, changes):
         for security in changes.AddedSecurities:
             security.SetFeeModel(CustomFeeModel())
-            security.SetLeverage(10)
+            # Reduced from 10 to 5 for more conservative risk management.
+            security.SetLeverage(5)
             
     def CoarseSelectionFunction(self, coarse):
         # Update the rolling window every day.
@@ -64,12 +67,4 @@ class Weeks52HighEffectinStocks(QCAlgorithm):
         
         selected = [x.Symbol
             for x in sorted([x for x in coarse if x.HasFundamentalData and x.Market == 'usa'],
-                key = lambda x: x.DollarVolume, reverse = True)[:self.coarse_count]]
-        
-        # Warmup price rolling windows.
-        for symbol in selected:
-            if symbol in self.data:
-                continue
-            
-            self.data[symbol] = SymbolData(symbol, self.period)
-            his
+                key = lambda x: x.DollarVolume, rev
