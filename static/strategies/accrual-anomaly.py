@@ -17,6 +17,9 @@
 #
 # Personal note 2: Changed leverage from 5 to 4 to reduce margin risk. The original leverage of 5
 # felt aggressive for a long/short strategy with annual rebalancing.
+#
+# Personal note 3: Added a minimum dollar volume filter of $1M in CoarseSelectionFunction to
+# exclude illiquid micro-caps that are hard to trade in practice and may distort backtest results.
 
 from AlgorithmImports import *
 
@@ -57,15 +60,13 @@ class AccrualAnomaly(QCAlgorithm):
         if not self.selection_flag:
             return Universe.Unchanged
         
-        # selected = [x.Symbol for x in coarse if x.HasFundamentalData and x.Market == 'usa']
+        # Filter by HasFundamentalData, market, and a minimum $1M daily dollar volume to exclude illiquid stocks
         selected = [x.Symbol
-            for x in sorted([x for x in coarse if x.HasFundamentalData and x.Market == 'usa'],
+            for x in sorted([x for x in coarse if x.HasFundamentalData and x.Market == 'usa' and x.DollarVolume >= 1_000_000],
                 key = lambda x: x.DollarVolume, reverse = True)[:self.coarse_count]]
         
         return selected
     
     def FineSelectionFunction(self, fine):
         fine = [x for x in fine if (float(x.FinancialStatements.BalanceSheet.CurrentAssets.TwelveMonths) != 0) 
-                                and (float(x.FinancialStatements.BalanceSheet.CashAndCashEquivalents.TwelveMonths) != 0)
-                                and (float(x.FinancialStatements.BalanceSheet.CurrentLiabilities.TwelveMonths) != 0)
-                                
+                          
